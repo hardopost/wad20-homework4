@@ -38,7 +38,7 @@ const routes = [
 
 const router = new VueRouter({routes});
 
-const testData = [
+const mocktestData = [
     {
         id: 1,
         text: "I think it's going to rain",
@@ -92,15 +92,17 @@ const testData = [
 //Mock axios.get method that our Component calls in mounted event
 jest.mock("axios", () => ({
     get: () => Promise.resolve({
-        data: testData
+        data: mocktestData
     })
 }));
 
 describe('Posts', () => {
-
+    console.log(mocktestData.length)
     const wrapper = mount(Posts, {router, store, localVue});
 
-    it('1 == 1', function () {
-        expect(true).toBe(true)
-    });
+    it('as many posts as in testData', function () {
+        const posts = wrapper.findAll('.post')
+        console.log(posts.toString())
+        expect(posts.length).toEqual(mocktestData.length)
+    })
 });
