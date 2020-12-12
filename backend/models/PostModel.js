@@ -3,6 +3,7 @@ const db = require('../sqlite/connection');
 const PostModel = {
 
     create(params, callback) {
+        //statement - andmebaasi postituse sisestamine
         let statement = 'INSERT INTO post (author_id, text, media_type, media_url) VALUES (?, ?, ?, ?);';
         let data = [
             params.userId,
@@ -88,8 +89,8 @@ const PostModel = {
      * @param userId
      * @param callback
      */
-    getAllForUser(userId, callback) {
-
+    getAllForUser(userId, callback) {  //takes userId and callback function as arguments
+        //prepared sql statement in variable statement
         const statement = `
             SELECT post.id
             FROM post
@@ -97,7 +98,7 @@ const PostModel = {
                OR post.author_id IN (SELECT follow.user_id FROM follow WHERE follow.follower_id = ? AND follow.delete_time IS NULL)
                ORDER BY post.create_time DESC
         `;
-
+        //tagastab andmebaasi päringu tulemuse (rows) ja annab selle funktsioonile argumendiks
         return query(statement, [userId, userId], (rows) => {
             callback(Array.isArray(rows) ? rows.map(row => row.id) : [])
         });
