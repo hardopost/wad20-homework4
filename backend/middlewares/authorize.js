@@ -1,4 +1,5 @@
 const UserModel = require('../models/UserModel');
+const jwt = require('../library/jwt');
 
 module.exports = (request, response, next) => {
 
@@ -8,9 +9,12 @@ module.exports = (request, response, next) => {
         it here using 'jsonwebtoken' dependency. Then set request.currentUser as
         decoded user from access token.
     */
+    let accessToken = request.headers.authorization.slice(7);
+    let authorized = jwt.verifyAccessToken(accessToken);
 
-    if (request.headers.authorization) {
-        UserModel.getById(1, (user) => {
+
+    if (authorized) {
+        UserModel.getById(authorized.id, (user) => {
             request.currentUser = user;
             next();
         });

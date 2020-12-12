@@ -9,6 +9,7 @@ const jwt = {
             expiresIn: 600 //10 minutes
         });
     },
+    //if successful will return back the payload {id, email, iat, exp}
     verifyAccessToken: (token) => {
         try {
             return JsonWebToken.verify(token, SECRET);

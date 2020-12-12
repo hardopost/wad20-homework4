@@ -41,9 +41,15 @@ const UserModel = {
 
     },
 
-    getByEmailAndPassword(email, password, callback) {
 
+    getByEmailAndPassword(email, password, callback) {
+        //getByEmail is invoked and as a result we get user object for passing to function below..
         return this.getByEmail(email, (user) => {
+            /*if user is not null we take user entered password and user.salt that was stored in DB and we calculate
+            hashed password and save it in variable hash.
+            then we compare if the newly calculated hash equals the hash that was stored in DB.
+            If it is we have found our user if not we set the user variable null.
+             */
             if (user) {
                 let hash = pwd.hashPassword(password, user.salt);
 
@@ -51,21 +57,30 @@ const UserModel = {
                     user = null;
                 }
             }
-
+            /* we give out user (can be null or real user object) to callback(user) function that was
+            invoked from users page
+             */
             callback(user)
         });
     },
 
+    //takes e-mail and uses it for DB query to find user
     getByEmail(email, callback) {
-
+        //prepared statement
         const statement = 'SELECT * FROM user WHERE email = ? AND delete_time IS NULL';
 
+        //actual database query takes place here
         return query(statement, [email], (rows) => {
             let user = null;
 
+            /*if we got user object from database we have it on rows[0] and we save it to user variable
+            * if we didn't get user from database user variable remains null*/
             if (Array.isArray(rows) && rows.length) {
                 user = rows[0];
             }
+
+            /*we give user to callback(user) as argument? the function will be executed above in "parent" function
+            getByEmailAndPassword, but from here it gets the user that was retrieved from DB */
             callback(user)
         });
 

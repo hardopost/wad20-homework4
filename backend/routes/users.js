@@ -3,10 +3,12 @@ const router = express.Router();
 const authorize = require('../middlewares/authorize');
 const UserModel = require('../models/UserModel');
 const FollowModel = require('../models/FollowModel');
+const jwt = require('../library/jwt');
 
 // Public endpoints
 router.post('/', (request, response) => {
 
+    //login form
     let form = {
         email: {required: true},
         password: {required: true},
@@ -55,6 +57,7 @@ router.post('/', (request, response) => {
 
 router.post('/login', (request, response) => {
 
+    //we save user entered e-mail and password to variables
     let email = request.body.email;
     let password = request.body.password;
 
@@ -68,16 +71,30 @@ router.post('/login', (request, response) => {
         message: 'Please provide email and password'
     };
 
+    //if user does not enter email or password or both we send noCredentials response
     if (!email || !password) {
         response.status(400).json(noCredentials);
         return;
     }
 
+    /*when we are sure we have e-mail and password, we run database query using function getByEmailAndPassword
+    we return user object from database if it exists and use it for response.
+    If user does not exist we respond with status 404
+     */
     UserModel.getByEmailAndPassword(email, password, (user) => {
+        /*after checking from DB if user is null, it is because it didn't exist or password or email
+        was wrong, but we won't tell ecaxtly what was wrong from security reasons.
+         */
         if (!user) {
             response.status(404).json(invalidCredentials);
             return;
         }
+
+        //if user exists, we can respond with user's data in json format and now send access token,
+        //what will be used to send back to server and then we can set current user
+        let id = user.id;
+        let email = user.email;
+        let payload = {id, email};
 
         response.json({
             id: user.id,
@@ -85,8 +102,8 @@ router.post('/login', (request, response) => {
             lastname: user.lastname,
             email: user.email,
             avatar: user.avatar,
-            accessToken: null // THis is the place where you should pass generated access token
-        })
+            accessToken: jwt.createAccessToken(payload) // THis is the place where you should pass generated access token
+        });
     });
 });
 
@@ -103,7 +120,7 @@ router.post('/:userId/follows', authorize, (request, response) => {
     //To get currently logged in user object use request.currentUser
 
     let userId = request.params.userId;
-    let followerId = request.currentUser.id;
+    let followerId = request.currentUser.id; //logged in user's id
 
     if (userId.toString() === followerId.toString()) {
         response.status(403)
