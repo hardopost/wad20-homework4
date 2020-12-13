@@ -2,6 +2,7 @@ import {mount, createLocalVue} from '@vue/test-utils'
 import Vuex from 'vuex'
 import VueRouter from 'vue-router'
 import Posts from "../../src/components/Posts.vue";
+import moment from "moment";
 
 const localVue = createLocalVue();
 
@@ -102,7 +103,37 @@ describe('Posts', () => {
 
     it('as many posts as in testData', function () {
         const posts = wrapper.findAll('.post')
-        console.log(posts.toString())
         expect(posts.length).toEqual(mocktestData.length)
+    })
+
+    it('correct rendering of image, video or none based on media property', function() {
+        const posts = wrapper.findAll(".post")
+
+        for (let i = 0; i < posts.length; i++) {
+            let post = posts.at(i);
+            let mediaType = mocktestData[i].media;
+            if (mediaType!==null) {
+                mediaType = mediaType.type
+            }
+
+            if (mediaType===null) {
+                post = post.findAll('.post-image');
+                expect(post.length).toEqual(0);
+            }
+            if (mediaType==='image') {
+                expect(post.contains('.post-image') && !post.contains('video')).toBe(true)
+            }
+            if (mediaType==='video') {
+                expect(post.contains('.post-image') && post.contains('video')).toBe(true)
+            }
+        }
+    })
+
+    it('time is displayed in correct format', function() {
+        const posts = wrapper.findAll(".post")
+        for (let i = 0; i < posts.length; i++) {
+            let time = posts.at(i).find("div > span > small")
+            expect(time.html()).toBe('<small>'+moment(mocktestData[i].createTime).format('LLLL')+'</small>')
+        }
     })
 });
